@@ -7,8 +7,8 @@ import DateSelector from '../components/DateSelector';
 import PackageChart from '../components/PackageChart';
 import StatsDisplay from '../components/StatsDisplay';
 import { getDataByDate } from '../services/sheetsApi';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import PDFGenerator from '../components/PDFGenerator';
+//import { PDFDownloadLink } from '@react-pdf/renderer';
+//import PDFGenerator from '../components/PDFGenerator';
 import * as XLSX from 'xlsx';
 
 export default function Dashboard() {
@@ -66,14 +66,25 @@ export default function Dashboard() {
 
   const exportToExcel = () => {
     if (!chartData) return;
-    
-    const worksheet = XLSX.utils.json_to_sheet(chartData);
+  
+    // Filtrar apenas as colunas desejadas
+    const filteredData = chartData.map(({ timestamp, boxNumber }, index) => ({
+      'Ordem': index + 1,
+      'Data e Hora': timestamp,
+      'Caixa': boxNumber,
+    }));
+  
+    const worksheet = XLSX.utils.json_to_sheet(filteredData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Relatório");
-    const dateStr = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(workbook, `relatorio_pacotes_${dateStr}.xlsx`);
-  };
+  
+     // Gera a data local corretamente
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR').split('/').reverse().join('-');
 
+    XLSX.writeFile(workbook, `relatorio_de_registro_${dateStr}.xlsx`);
+  };
+  
   // Limpa o intervalo ao desmontar o componente
   useEffect(() => {
     return () => {
@@ -134,8 +145,18 @@ export default function Dashboard() {
                 >
                   Exportar para Excel
                 </button>
-                
-                <PDFDownloadLink
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+
+                /*<PDFDownloadLink
+                  key={selectedDate ? selectedDate.toString() : 'initial'}  // Garante que o PDF seja recriado ao mudar a data
                   document={<PDFGenerator data={chartData} />}
                   fileName={`relatorio_pacotes_${new Date().toISOString().slice(0,10)}.pdf`}
                   style={{
@@ -150,14 +171,6 @@ export default function Dashboard() {
                   }}
                 >
                   {({ loading }) => (
-                    loading ? 'Preparando PDF...' : 'Exportar para PDF'
+                    loading ? 'Carregegando PDF...' : 'Exportar para PDF'
                   )}
-                </PDFDownloadLink>
-              </div>
-            </>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
+                </PDFDownloadLink>*/
